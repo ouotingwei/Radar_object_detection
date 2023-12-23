@@ -1,0 +1,6 @@
+train: /home/wei/Radar_Object_Detector/data/training_data_2/city_1_3/images
+val: /home/wei/Radar_Object_Detector/data/training_data_2/city_1_3/images
+test: /home/wei/Radar_Object_Detector/data/training_data_2/city_6_0/images
+
+nc: 1
+names: ["moving object"]
