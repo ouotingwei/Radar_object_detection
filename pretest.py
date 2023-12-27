@@ -23,6 +23,8 @@ for image_file in image_files:
         for line in lines:
             data = line.split()
 
+            # img size = 1152*1152
+
             object_class = int(data[0])
             x_center = float(data[1])*1152
             y_center = float(data[2])*1152
