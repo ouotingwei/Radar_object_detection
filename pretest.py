@@ -2,8 +2,8 @@ import os
 import cv2
 import matplotlib.pyplot as plt
 
-radar_path = "/home/wei/Radar_Object_Detector/data/training_data_2/city_1_3/images"
-txt_path = "/home/wei/Radar_Object_Detector/data/training_data_2/city_1_3/labels"
+radar_path = "/home/wei/Radar_Object_Detector/data/whole_train/images"
+txt_path = "/home/wei/Radar_Object_Detector/data/whole_train/labels"
 
 image_files = sorted([f for f in os.listdir(radar_path) if f.endswith('.png')])
 

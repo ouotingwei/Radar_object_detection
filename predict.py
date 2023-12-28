@@ -1,98 +1,71 @@
+#!/usr/bin/env python3
+
 import cv2
 from ultralytics import YOLO
 import os
+import time
+import json
 import numpy as np
-import radiate
 
-testing_data_dir = '/home/wei/Radar_Object_Detector/data/testing_data/city_7_0'
-congig_file_dir = '/home/wei/Radar_Object_Detector/config.yaml'
-
-dt = 0.25
-# load sequence
-seq = radiate.Sequence(testing_data_dir, congig_file_dir)
+def float32_handler(obj):
+    if isinstance(obj, np.float32):
+        return float(obj)
+    raise TypeError(f'Object of type {obj.__class__.__name__} is not JSON serializable')
 
 def main():
 
-    model = YOLO('/home/wei/Radar_Object_Detector/training_results/12_20_all/detect/train6/weights/best.pt')
+    model = YOLO('/home/wei/Radar_Object_Detector/training_results/12_27_v8m/detect/train2/weights/best.pt')
 
     image_folder = '/home/wei/Radar_Object_Detector/data/testing_data/city_7_0/images'
 
-    camera_folder = '/home/wei/Radar_Object_Detector/data/testing_data/city_7_0/zed_right'
+    output_json_path = '/home/wei/Radar_Object_Detector/predict_results/1228.json'
 
-    cv2.namedWindow("YOLOv8", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("YOLOv8", 1080, 1080)
+    cv2.namedWindow("YOLOv8 Predictor", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("YOLOv8 Predictor", 1000, 1000)
 
     images = [img for img in os.listdir(image_folder) if img.endswith(".png") or img.endswith(".jpg")]
 
     images.sort()
 
-    for t in np.arange(seq.init_timestamp, seq.end_timestamp, dt):
-        output = seq.get_from_timestamp(t)
-        if output != {}:
-            radar = output['sensors']['radar_cartesian']
-            camera = output['sensors']['camera_right_rect']
-            
-            print(output)
-            '''
-            results = model(frame)
-            annotated_frame = results[0].plot()
+    data_list = []
 
-            for r in results:
-                obj_amount = len(r.boxes.xywh)
-                
-                if obj_amount != 0:
-                    for id in range(obj_amount):
-                        x = r.boxes.xywh[id][0]
-                        y = r.boxes.xywh[id][1]
-                
-
-
-                
-                objects.append({'bbox': {'position': ??}, 'class_name': 'moving object'})
-
-            radar = seq.vis(radar, objects, color=(255,0,0))
-
-            bboxes_cam = seq.project_bboxes_to_camera(objects,
-                                                    seq.calib.right_cam_mat,
-                                                    seq.calib.RadarToRight)
-            # camera = seq.vis_3d_bbox_cam(camera, bboxes_cam)
-            camera = seq.vis_bbox_cam(camera, bboxes_cam)
-
-            cv2.imshow('radar', radar)
-            cv2.imshow('camera_right_rect', camera)
-            # You can also add other sensors to visualize
-            cv2.waitKey(1)
-            '''
-            
-    '''
     for image_file in images:
+        print(image_file)
         image_path = os.path.join(image_folder, image_file)
         frame = cv2.imread(image_path)
 
         if frame is not None:
             results = model(frame)
-            annotated_frame = results[0].plot()
+
+            sample_token, _ = os.path.splitext(image_file)
 
             for r in results:
-                obj_amount = len(r.boxes.xywh)
-                
-                if obj_amount != 0:
-                    for id in range(obj_amount):
-                        x = r.boxes.xywh[id][0]
-                        y = r.boxes.xywh[id][1]
-                    
+                points = []
+                for box in r.boxes.xyxy:
+                    x_min, y_min, x_max, y_max = box.detach().cpu().numpy()
+                    print(sample_token, x_min, y_min, x_max, y_max)
+                    points.append([[x_min, y_min], [x_min, y_max], [x_max, y_min], [x_max, y_max]])
 
-            cv2.imshow("YOLOv8", annotated_frame)
+                    annotated_frame = r.plot()
+                    cv2.imshow("YOLOv8 Predictor", annotated_frame)
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+                    if cv2.waitKey(1) & 0xFF == ord("q"):
+                        break
 
-            time.sleep(1)
+                    time.sleep(0.2)
+
+                    data_list.append({
+                        "sample_token": sample_token,
+                        "points": points,
+                        "name": "car"
+                    })
         else:
             print(f"Unable to read image: {image_file}")
 
     cv2.destroyAllWindows()
-    '''
+
+    with open(output_json_path, 'w') as json_file:
+        json.dump(data_list, json_file, indent=4, default=float32_handler)
 
 if __name__ == '__main__':
     main()

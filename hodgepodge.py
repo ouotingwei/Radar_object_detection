@@ -1,8 +1,8 @@
 import os
 import shutil
 
-target_img_dir = "/home/wei/Radar_Object_Detector/data/training_data_2/hodgepodge/images"
-target_label_dir = "/home/wei/Radar_Object_Detector/data/training_data_2/hodgepodge/labels"
+target_img_dir = "/home/wei/Radar_Object_Detector/data/whole_train/images"
+target_label_dir = "/home/wei/Radar_Object_Detector/data/whole_train/labels"
 
 target_img_files = sorted([f for f in os.listdir(target_img_dir) if f.endswith(".png")])
 target_label_files = sorted([f for f in os.listdir(target_label_dir) if f.endswith(".txt")])

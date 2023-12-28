@@ -1,5 +1,5 @@
-train: /home/wei/Radar_Object_Detector/data/training_data_2/hodgepodge/images
-val: /home/wei/Radar_Object_Detector/data/training_data_2/hodgepodge/images
+train: /home/wei/Radar_Object_Detector/data/whole_train/images
+val: /home/wei/Radar_Object_Detector/data/whole_train/images
 test: /home/wei/Radar_Object_Detector/data/testing_data/city_7_0/images
 
 nc: 1
