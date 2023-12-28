@@ -7,6 +7,13 @@ import time
 import json
 import numpy as np
 
+def json_serialization_handler(obj):
+    if isinstance(obj, (np.float32, np.float64)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    raise TypeError(f'Object of type {obj.__class__.__name__} is not JSON serializable')
+
 def float32_handler(obj):
     if isinstance(obj, np.float32):
         return float(obj)
@@ -40,32 +47,32 @@ def main():
             sample_token, _ = os.path.splitext(image_file)
 
             for r in results:
-                points = []
-                for box in r.boxes.xyxy:
+                for box, score in zip(r.boxes.xyxy, r.boxes.conf):
+                    points = []
                     x_min, y_min, x_max, y_max = box.detach().cpu().numpy()
                     print(sample_token, x_min, y_min, x_max, y_max)
-                    points.append([[x_min, y_min], [x_min, y_max], [x_max, y_min], [x_max, y_max]])
+                    points = [[x_min, y_min], [x_min, y_max], [x_max, y_min], [x_max, y_max]]
+
+                    data_list.append({
+                        "sample_token": sample_token,
+                        "points": points,
+                        "name": "car",
+                        "score": score.detach().cpu().numpy()  # 注意这里是单数的 score
+                    })
 
                     annotated_frame = r.plot()
                     cv2.imshow("YOLOv8 Predictor", annotated_frame)
 
                     if cv2.waitKey(1) & 0xFF == ord("q"):
                         break
-
-                    time.sleep(0.2)
-
-                    data_list.append({
-                        "sample_token": sample_token,
-                        "points": points,
-                        "name": "car"
-                    })
+    
         else:
             print(f"Unable to read image: {image_file}")
 
     cv2.destroyAllWindows()
 
     with open(output_json_path, 'w') as json_file:
-        json.dump(data_list, json_file, indent=4, default=float32_handler)
+        json.dump(data_list, json_file, indent=4, default=json_serialization_handler)
 
 if __name__ == '__main__':
     main()
