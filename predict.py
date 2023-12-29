@@ -3,7 +3,6 @@
 import cv2
 from ultralytics import YOLO
 import os
-import time
 import json
 import numpy as np
 
@@ -51,13 +50,13 @@ def main():
                     points = []
                     x_min, y_min, x_max, y_max = box.detach().cpu().numpy()
                     print(sample_token, x_min, y_min, x_max, y_max)
-                    points = [[x_min, y_min], [x_min, y_max], [x_max, y_min], [x_max, y_max]]
+                    points = [[x_max, y_min], [x_min, y_min], [x_min, y_max], [x_max, y_max]]
 
                     data_list.append({
                         "sample_token": sample_token,
                         "points": points,
                         "name": "car",
-                        "score": score.detach().cpu().numpy()  # 注意这里是单数的 score
+                        "score": score.detach().cpu().numpy()
                     })
 
                     annotated_frame = r.plot()
